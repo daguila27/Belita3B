@@ -1,0 +1,12 @@
+body{
+	font-family: 'Oswald', sans-serif;
+}
+.container{
+	width: 50%;
+}
+.buttons{
+	width: 100%;
+}
+.buttons button{
+	width: 100%;
+}
