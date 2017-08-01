@@ -1,0 +1,80 @@
+<%- include layouts/admin_header.ejs %>
+<link href="/assets/css/style_providers.css" rel="stylesheet">
+<h1 class="page-header">Proveedores:</h1>
+
+<div class="col-md-8">
+<ul id="container_provider">
+  <%for(var i=0; i < data.length; i++){%>
+      <li class='list-group-item' id="<%=data[i].Codigo_proveedor%>"><h3><%=data[i].Nombre_proveedor%></h3>
+      <div class="delete" id="boton<%=data[i].Codigo_proveedor%>"><button class='btn btn-default' type="button" id="boton<%=data[i].Codigo_proveedor%>"><span class='glyphicon glyphicon-remove' aria-hidden='true'></span></button></div>
+      </li>
+  <%}%>
+</ul>
+</div>
+
+
+
+<div class="col-md-10 col-md-offset-1 col-sm-12">
+
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon1"></span>
+        <input type="text" name="providername" id="providername" class="form-control" placeholder="Registrar Proveedor" aria-describedby="basic-addon1">
+    </div>
+    <button type="submit" id="button_save" class="btn btn-success dropdown-toggle" >Registrar</button>
+
+</div>
+<script type="text/javascript">
+  $(document).ready(function(){
+    //SE ENFOCA LA BARRA DE ESCRITURA
+    $("#providername").focus();
+    //LO QUE SUCEDE CUANDO SE PRESIONA EL BOTON "REGISTRAR"
+    $(document).on("click", "#button_save",function(e){
+        e.preventDefault();
+        var providername = $("#providername").val();
+        $.ajax({
+                  type: 'POST',
+                  data: {'providername': providername},
+                  url: '/save_provider',
+                  success: function(data) {
+                      console.log("LUEGO DE AGREGAR UN PROVEEDOR SE RENDERIZA");
+                      console.log(data);
+                      console.log(data.name.Nombre_proveedor);
+                      var comand = "";
+                      comand += "<li class='list-group-item' id='" + data.id + "'><h3>" + data.name.Nombre_proveedor;
+                      comand += "</h3><div class='delete' id='boton" + data.id + "'><button class='btn btn-default' type='button'><span class='glyphicon glyphicon-remove' aria-hidden='true'></span></button></div></li>";
+                      console.log(comand);
+                      $("#container_provider").append(comand);
+
+                  }
+            });
+
+    });
+
+
+    $(document).on("click", ".delete", function(e){
+      e.preventDefault();
+      var id_provider = $(this).attr("id");//OBTENEMOS EL ID DEL BOTON
+      var id = id_provider.substring(5);//ELIMINAMOS LOS PRIMEROS 5 CARACTERES
+      console.log(id);
+      $.ajax({
+        type: 'POST',
+        data: {'id_provider': id},
+        url: '/delete_provider',
+        success: function(data){
+            if(data == 'error'){alert("El proveedor aun tiene facturas pendientes.");}
+            else{
+              console.log(data);
+              var ID = "#" + data;
+              var id_button = '#boton' + data;
+              console.log(ID);
+              console.log(id_button);
+              $(ID).remove();
+              $(id_button).remove();
+            }
+        }
+      });
+    });
+
+  });
+</script>
+<%- include layouts/footer.ejs %>

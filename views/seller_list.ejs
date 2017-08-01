@@ -1,0 +1,87 @@
+<%- include layouts/admin_header.ejs %>
+<link rel="stylesheet" type="text/css" href="/assets/css/style_list_seller.css">
+<script type="text/javascript" src="/assets/js/funciones_sellers.js"></script>
+<h1 class="page-header">Vendedores:</h1>
+<div class="new_seller">
+	<div class="input-group">
+	  <span class="input-group-addon" id="sizing-addon2"></span>
+	  <input id="Rut" type="number" class="form-control" placeholder="Rut" aria-describedby="sizing-addon2">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon" id="sizing-addon2"></span>
+	  <input id="Nombre" type="text" class="form-control" placeholder="Nombre" aria-describedby="sizing-addon2">
+	</div>
+	<button id="add_seller" class='btn btn-default' type="button" ><span class='glyphicon glyphicon-plus' aria-hidden='true'></span></button>
+</div>
+<div class="col-md-8">
+
+<ul>
+	<li id="plus_seller" class="list-group-item">
+		<span class="glyphicon glyphicon-plus"></span>
+		<span class='glyphicon glyphicon-user' aria-hidden='true'></span>
+	</li>
+</ul>
+<ul id="container_provider">
+  <%for(var i=0; i < data.length; i++){%>
+      <li class='list-group-item' id="<%=data[i].rut%>"><h3><%=data[i].nombre%></h3>
+      <div class="buttons">
+      	
+      	<button class='btn btn-default' type="button"><span class='glyphicon glyphicon-barcode' aria-hidden='true'></span></button>
+      	
+      	<div class="delete" id="boton<%=data[i].rut%>"><button class='btn btn-default' type="button"><span class='glyphicon glyphicon-remove' aria-hidden='true'></span></button></div>
+      
+      </div>
+      </li>
+  <%}%>
+</ul>
+</div>
+
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    //SE ENFOCA LA BARRA DE ESCRITURA
+   	$(document).on('click', '#plus_seller',function(e){
+   		e.preventDefault();
+   		//transform: translateY(700px);
+   		$('.new_seller').css('transform', 'translateY(700px)');
+   		$('#Rut').focus();
+   	});
+   	$(document).on('click', '#add_seller', function(e){
+   		e.preventDefault();
+   		var rut = $("#Rut").val();
+   		var nombre = $("#Nombre").val();
+   		$.ajax({
+   			type: 'POST',
+            data: {'nombre': nombre,'rut': rut},
+            url: '/new_seller',
+            success: function(data) { 
+            		console.log(data);   
+			   		$('#container_provider').append(item_seller(data));
+                  }
+   		});
+   		$('.new_seller').css('transform', 'translateY(-500px)');
+   		$('#Nombre').val('');
+   		$('#Rut').val('');
+   	});
+
+   	$(document).on('click', '.delete', function(e){
+   		e.preventDefault();
+        var id_boton = $(this).attr("id");//OBTENEMOS EL ID DEL BOTON
+    	var rut = id_boton.substring(5);//ELIMINAMOS LOS PRIMEROS 5 CARACTERES (POR boton)
+    	console.log(id_boton);
+    	console.log(rut); 
+   		$.ajax({
+   			type: 'POST',
+   			data: {'rut': rut},
+   			url: '/erase_seller',
+   			success: function(data){
+   				$('#' + rut).remove();
+   			}
+   		});
+   	});
+
+  });
+
+</script>
+
+<%- include layouts/footer.ejs %>

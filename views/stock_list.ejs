@@ -1,0 +1,55 @@
+<%- include layouts/admin_header.ejs %>
+<link rel="stylesheet" type="text/css" href="/assets/css/style_list_stock.css">
+<script type="text/javascript" src="/assets/js/funciones_stock.js"></script>
+<h1 class="page-header">Stock:</h1>
+
+<div class="col-md-8">
+
+	<div class="input-group">
+	  <span class="input-group-addon" id="basic-addon1"></span>
+	  <input type="text" id="CodigoProducto" class="form-control" placeholder="Codigo de barra" aria-describedby="basic-addon1">
+	</div>
+
+<ul id="container_products"></ul>
+<ul id="container_all_products">
+  <%for(var i=0; i < data.length; i++){%>
+      <li class='list-group-item'>
+      	<h3><%=data[i].nombre%></h3>
+      	<h4><%=data[i].cantidad%></h4>
+      </li>
+  <%}%>
+</ul>
+</div>
+
+
+<script type="text/javascript">
+  $(document).ready(function(){
+  		$('#CodigoProducto').focus();
+
+  		$('#CodigoProducto').on('keyup', function(e){
+  			e.preventDefault();
+  			var code = $('#CodigoProducto').val();
+	  		console.log(code);
+	  		$.ajax({
+	  			type: 'POST',
+	  			data: {'find_code': code},
+	  			url: '/find_product',
+	  			success: function(data){
+	  				if(data.rows.length == 0){
+	  					$('#container_products').remove();
+	  					$('.col-md-8 #container_all_products').css("display", "block");
+	  				}
+	  				else{	
+	 					console.log(data);
+	  					$('.col-md-8 #container_all_products').css("display", "none");
+	  					$('#container_products').remove();
+	  					$('.col-md-8').append(item_product(data));
+	  				}
+	  			}
+	  			});
+  		});
+  });
+
+</script>
+
+<%- include layouts/footer.ejs %>

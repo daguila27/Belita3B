@@ -1,0 +1,279 @@
+<%- include layouts/admin_header.ejs %>
+<link href="/assets/css/style_inventory.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/assets/css/bootstrap-tagsinput.css">
+<script type="text/javascript" src="/assets/js/funciones.js"></script>
+<script type="text/javascript" src="/assets/js/bootstrap-tagsinput.js"></script>
+<script type="text/javascript" src="/assets/js/bootstrap-tagsinput-angular.js"></script>
+<div class="proveedor">
+    <h3 class="pageheader">Nuevo Inventario:</h3>
+    <input type="hidden" id="idFactura" value="<%=data_facture[0].id_Factura%>"> 
+    <input type="hidden" id="costoFactura" value="<%=data_facture[0].Costo%>">
+    <input type="hidden" id="indiceBulto" value="<%=index_bundle%>">
+    <input type="hidden" id="ProductosTotales">
+</div>
+
+<div class="bundles">
+    <ul class="nav nav-tabs">
+        <%for(var i=0; i<data_facture[0].Bultos; i++){
+          var new_index = i.toString();
+          if(new_index.length < 4){
+            new_index = "0"*(4 - new_index.length) + new_index;%>
+          <%}
+          if(index_bundle == i){%>
+            <!--<li role="presentation" class="active"><a id="bundle<%=new_index%>"><form method="post" action="/new_inventory/<%=data_facture[0].id_Factura%><%=new_index%>">Bulto <%=i+1%></form></a></li>-->
+            <li id="<%=data_facture[0].id_Factura%><%=new_index%>" role="presentation" class="active"><a type="hidden">Bulto <%=i+1%></a></li>
+        <%}
+          else{%>
+            <li id="<%=data_facture[0].id_Factura%><%=new_index%>" role="presentation"><a>Bulto <%=i+1%></a type='hidden'></li>
+          <%}
+        }%>
+        <form method="post">
+            <input name="codFacture" type="hidden" value="<%=data_facture[0].id_Factura%>">
+        </form>
+    </ul>
+</div>
+
+<div class="input_cost">
+        <label>Ingrese Precio del bulto:</label>
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1"></span>
+          <input id="CostoBundle" type="number" class="form-control" placeholder="Precio del bulto" aria-describedby="basic-addon1">
+        </div>
+  
+
+
+</div>
+
+
+
+<div class="input_product">
+        <label>Ingrese Producto:</label>
+        <div class="input-group" id="input_tags">
+		        <span class="input-group-addon" id="basic-addon1"></span>
+		        <input data-role="tagsinput" id="NombreProduct" type="text" class="form-control" placeholder="Nombre(Tags)" aria-describedby="basic-addon1">
+    		</div>
+        <div id="tag_container">
+          <div></div>
+        </div>
+		    <div class="input-group">
+		      <span class="input-group-addon" id="basic-addon1"></span>
+		      <input id="CantidadProduct" type="text" class="form-control" placeholder="Cantidad" aria-describedby="basic-addon1">
+		    </div>
+
+        <div style="width: 100%">
+          <button type="button" id="regist_button" class="btn btn-success">Registrar</button>
+        </div>  
+
+
+</div>
+
+
+<div class="table-responsive" id="tabla_productos">
+    <table class="table table-bordered" id="list_product">
+            <tr id="head">
+              <td><b>Producto</b></td>
+              <td><b>Precio(CLP)</b></td>
+              <td><b>Cantidad</b></td>
+              <td><b>Ganancia</b></td>
+              <td></td>
+            </tr>
+          <%var total = 0;
+          for(var i=0; i< data_products.length; i++){
+            if(data_products[i].indice_bulto == parseInt(index_bundle) ){%>
+              <tr id="<%=data_products[i].id_producto%>">
+                <td><%=data_products[i].nombre%></td>
+                <td class='in_text'><div>$<input type="number" id="p<%=data_products[i].id_producto%>"></div></td>
+                <td class="amount"><%=data_products[i].cantidad%><input type="hidden" id="c<%=data_products[i].id_producto%>" value="<%=data_products[i].cantidad%>"></td>
+                    <%total += data_products[i].precio*data_products[i].cantidad;%>
+                <td class="ganancia" id="g<%=data_products[i].id_producto%>"></td>    
+                <td class="buttons">
+                    <div class='delete' id="delete_<%=data_products[i].id_producto%>">
+                      <button type="button" class='btn btn-default'><span class='glyphicon glyphicon-remove'></span></button>
+                    </div>
+                    <div class="generateBarcode">
+                      <button type="button" id='bc<%=data_products[i].id_producto%>' class='btn btn-default'><span class='glyphicon glyphicon-barcode'></span></button>
+                    </div>
+                </td>
+              </tr>
+            <%}}%>
+          <tr id="head" class="total">
+              <td><b>Total: $<%=total%></b></td>
+            </tr>
+    </table>
+</div>
+<div class="save">
+<form method='post' action='/saved_facture'>
+  <input type="hidden" name="id_Factura" value="<%=data_facture[0].id_Factura%>"> 
+  <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Guardar</button>
+</form>
+</div>
+
+<input id="total" value="<%=total%>" type="hidden">
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    
+    //AQUI CALCULAMOS LAS CANTIDAD TOTAL DE PRODUCTOS
+    var CantidadTotal = 0;
+    $('.amount input').each (function(){
+          CantidadTotal += parseInt($(this).val());
+    });
+    console.log(CantidadTotal);
+
+
+
+
+
+
+    $(document).on('click', '.save form button', function(e){
+        e.preventDefault();
+        alert("¿Estas seguro que desea guardar el inventario?");
+    });
+
+
+    $('.in_text div input').on('keyup', function(e){
+          var idProducto = $(this).attr('id').substring(1);//ID ES DEL TIPO p.idProducto
+
+    });
+
+
+    $(".bootstrap-tagsinput input").focus();
+    $(document).on("click", "#regist_button", function(e){
+          e.preventDefault();
+          var t = $('#total').val();
+          var nombre_producto = $('#NombreProduct').val();
+          var cantidad = $('#CantidadProduct').val();
+          var cod_factura = $('.proveedor #idFactura').val();
+          $.ajax({
+                type: 'POST',
+                data: {'nombre_producto': nombre_producto.toLowerCase(),'cantidad': cantidad, 'precio': 0, 'codigo_factura': cod_factura, 'indice_bulto': parseInt($('#indiceBulto').val())},
+                url: '/new_product',
+                success: function(data) {
+                          $('.total').remove();
+                          $('#list_product').append(item_producto(t, data, true));
+                          var num = parseInt(t) + parseInt(data.datos_producto.precio)*parseInt(data.datos_producto.cantidad);
+                          $('#total').val(num.toString());
+
+                          //SUMAMOS LA CANTIDAD DE PRODUCTOS INGRESADOS A LA CANTIDAD TOTAL DE PRODUCTOS
+                          $('.amount input').val(parseInt(data.datos_producto.cantidad) + CantidadTotal);
+                          console.log($('.amount input').val());
+                  }
+          });
+          var tags = Split(nombre_producto.toLowerCase(), ',');
+          $.ajax({
+              type: 'POST',
+              data: {'tags': tags},
+              url:'/save_tags',
+              success: function(data){
+                if(data == 'ok'){
+                  console.log('EXITO');
+                }
+              }
+          });
+          $(".bootstrap-tagsinput").val("");
+          $('#CantidadProduct').val("");
+          $('#PrecioProduct').val("");
+          $('.bootstrap-tagsinput input').focus(); 
+    });
+    
+    /**$('#input_tags').on('keyup', function(e){
+          e.preventDefault();
+          //var tag = $("#input_tags #NombreProduct").val();
+          var tag = $(".bootstrap-tagsinput input").val();
+          console.log("VALOR INPUT: " + $('.bootstrap-tagsinput input').val());
+          var last_tag = adaptador_texto(tag);
+          console.log(last_tag);
+          if(last_tag == ""){
+                  $('#tag_container div').remove();
+                  $('#tag_container').append(add_null());
+          }
+          else{  
+            $.ajax({
+                  type: 'POST',
+                  data: {'tag': last_tag},
+                  url: '/search_tag',
+                  success: function(data) {
+                      if(data.length == 0){
+                          $('#tag_container div').remove();
+                          $('#tag_container').append(add_tag());
+                      }
+                      else{
+                          console.log(data);
+                          $('#tag_container div').remove();
+                          $('#tag_container').append(show_tags(data));
+                          $('#tag_container').append(add_tag());
+                      }
+                  }
+              });
+          }
+    });*/
+    $(document).on("click", "#add_tag", function(e){
+            e.preventDefault();
+            console.log("click");
+            var value = adaptador_texto($('#NombreProduct').val());
+            var original = MAYUS_P(value);
+            $.ajax({
+                type: 'POST',
+                data: {'value': original},
+                url: '/add_tag',
+                success: function(data){
+                    console.log(data);
+                }
+            });
+    });
+
+    $(document).on('click', '.generateBarcode button', function(e){
+            e.preventDefault();
+            var idProducto = $(this).attr('id').substring(2);//se obtiene el id del producto
+            var cantidad = $('#c' + idProducto).val();
+            var codigo_generados = [];
+            for(var i=0; i<cantidad; i++){
+                codigo_generados[i] = (idProducto * 1000) + i;
+                console.log(codigo_generados[i]);
+            }
+        });
+
+    $(document).on("click", ".delete", function(e){
+            e.preventDefault();
+            var t = $('#total').val();
+            var id_product = $(this).attr("id");
+            var id = id_product.substring(7);//ELIMINAMOS LOS PRIMEROS 7 CARACTERES
+            var precio = $('#p' + id).val();
+            var cantidad = $('#c' + id).val();
+            $.ajax({
+                type: 'POST',
+                data: {'id_producto': id},
+                url: '/delete_product',
+                success: function(data){
+                        $("#"+data).remove();
+                        var neu = parseInt(t) - parseInt(precio)*parseInt(cantidad);
+                        $('#total').val(neu);
+                        console.log($('#total').val());
+                        console.log(neu);
+                        $('.total td b').remove();
+                        $('.total td').append("<b>Total: $" + neu.toString() + "</b>");
+                }
+            });
+    });
+    $(document).on('click', '.col-sm-2', function(e){
+            e.preventDefault();
+            var tag = $(this).attr("id");
+            console.log("VALOR INPUT: " + $('.bootstrap-tagsinput input').val());
+            console.log("TAG: " + tag);
+            var text = put_tag($(".bootstrap-tagsinput input").val(), tag);
+            $('.bootstrap-tagsinput input').val(text);
+            $(".bootstrap-tagsinput input").focus();
+    });
+
+    $(document).on('click', '.bundles ul li', function(e){
+            e.preventDefault();
+            var index = $(this).attr('id');
+            console.log(index);
+            $(".bundles ul form").attr('action', '/new_inventory/' + index);
+            $(".bundles ul form").submit();
+          });
+  });
+
+</script>
+
+<%- include layouts/footer.ejs %>
